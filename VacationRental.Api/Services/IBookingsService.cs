@@ -8,7 +8,7 @@ namespace VacationRental.Api.Services
     {
         Booking GetById(int BookingId);
         int Insert(Booking Booking);
-        bool IsBookingAvailable(Booking newBooking, Rental rental, bool considerPreparationTime = true);
-        IList<Booking> GetAllRentalBookings(int rentalId, DateTime date);
+        bool IsBookingAvailable(Booking newBooking, Rental rental);
+        IList<Booking> GetAllRentalBookings(Rental rental, DateTime start, int nights);
     }
 }

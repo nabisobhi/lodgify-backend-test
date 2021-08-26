@@ -41,6 +41,7 @@ namespace VacationRental.Api
             services.AddSingleton(typeof(IRepository<>), typeof(InMemoryRepository<>));
             services.AddSingleton<IRentalsService, RentalsService>();
             services.AddSingleton<IBookingsService, BookingsService>();
+            services.AddSingleton<ICalendarService, CalendarService>();
 
         }
 

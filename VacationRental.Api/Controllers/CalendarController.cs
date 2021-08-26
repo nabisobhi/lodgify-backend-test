@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using VacationRental.Api.Domain;
 using VacationRental.Api.Models;
 using VacationRental.Api.Services;
 
@@ -11,12 +12,15 @@ namespace VacationRental.Api.Controllers
     [ApiController]
     public class CalendarController : ControllerBase
     {
+        private readonly ICalendarService _calendarService;
         private readonly IBookingsService _bookingsService;
         private readonly IRentalsService _rentalsService;
 
-        public CalendarController(IBookingsService bookingsService,
+        public CalendarController(ICalendarService calendarService,
+            IBookingsService bookingsService,
             IRentalsService rentalsService)
         {
+            _calendarService = calendarService;
             _bookingsService = bookingsService;
             _rentalsService = rentalsService;
         }
@@ -31,10 +35,12 @@ namespace VacationRental.Api.Controllers
             if (rental is null)
                 throw new ApplicationException("Rental not found");
 
-            var result = new CalendarViewModel 
+            var calendarBookingList = _calendarService.GetCalendar(rental, start, nights);
+
+            var result = new CalendarViewModel
             {
                 RentalId = rentalId,
-                Dates = new List<CalendarDateViewModel>() 
+                Dates = new List<CalendarDateViewModel>(),
             };
 
             for (var i = 0; i < nights; i++)
@@ -43,8 +49,20 @@ namespace VacationRental.Api.Controllers
                 result.Dates.Add(new CalendarDateViewModel
                 {
                     Date = dateTime,
-                    Bookings = _bookingsService.GetAllRentalBookings(rentalId, dateTime)
-                        .Select(booking => new CalendarBookingViewModel { Id = booking.Id })
+                    Bookings = calendarBookingList
+                    .Where(cb => cb.Date == dateTime && cb.Type == CalendarDateType.Booking)
+                        .Select(cb => new CalendarBookingViewModel
+                        {
+                            Id = cb.BookingId,
+                            Unit = cb.Unit
+                        })
+                        .ToList(),
+                    PreparationTimes = calendarBookingList
+                    .Where(cb => cb.Date == dateTime && cb.Type == CalendarDateType.PreparationTime)
+                        .Select(cb => new CalendarPreparationTimeViewModel
+                        {
+                            Unit = cb.Unit
+                        })
                         .ToList(),
                 });
             }

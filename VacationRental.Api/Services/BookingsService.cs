@@ -25,14 +25,14 @@ namespace VacationRental.Api.Services
             return _bookingsRepository.Insert(Booking);
         }
 
-        public bool IsBookingAvailable(Booking newBooking, Rental rental, bool considerPreparationTime = true)
+        public bool IsBookingAvailable(Booking newBooking, Rental rental)
         {
             for (var i = 0; i < newBooking.Nights; i++)
             {
                 var count = _bookingsRepository.Table.Count(booking => booking.RentalId == rental.Id
-                        && (booking.Start <= newBooking.Start.Date && booking.End > newBooking.Start.Date)
-                        || (booking.Start < newBooking.End && booking.End >= newBooking.End)
-                        || (booking.Start > newBooking.Start && booking.End < newBooking.End));
+                        && (booking.Start <= newBooking.Start.Date && EndOfBlocking(booking, rental) > newBooking.Start.Date)
+                        || (booking.Start < EndOfBlocking(newBooking, rental) && EndOfBlocking(booking, rental) >= EndOfBlocking(newBooking, rental))
+                        || (booking.Start > newBooking.Start && EndOfBlocking(booking, rental) < EndOfBlocking(newBooking, rental)));
 
                 if (count >= rental.Units)
                     return false;
@@ -41,10 +41,21 @@ namespace VacationRental.Api.Services
             return true;
         }
 
-        public IList<Booking> GetAllRentalBookings(int rentalId, DateTime date)
+        public IList<Booking> GetAllRentalBookings(Rental rental, DateTime start, int nights)
         {
-            return _bookingsRepository.Table.Where(booking => booking.RentalId == rentalId
-                    && booking.Start <= date && booking.End > date).ToList();
+            var bookings = _bookingsRepository.Table.Where(booking => booking.RentalId == rental.Id
+                    && booking.Start <= start.AddDays(nights) && EndOfBookig(booking) >= start);
+            return bookings.ToList();
+        }
+
+        protected DateTime EndOfBookig(Booking booking)
+        {
+            return booking.Start.AddDays(booking.Nights);
+        }
+
+        protected DateTime EndOfBlocking(Booking booking, Rental rental)
+        {
+            return booking.Start.AddDays(booking.Nights + rental.PreparationTimeInDays);
         }
     }
 }

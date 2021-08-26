@@ -22,7 +22,6 @@ namespace VacationRental.Api
         {
             CreateMap<Booking, BookingViewModel>();
             CreateMap<BookingBindingModel, Booking>()
-                .ForMember(b => b.End, c => c.Ignore())
                 .ForMember(b => b.Start, c => c.MapFrom(bmm => bmm.Start.Date));
         }
     }
