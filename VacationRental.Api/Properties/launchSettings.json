@@ -3,7 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iis": {
-      "applicationUrl": "http://localhost/VacationRental.Api",
+      "applicationUrl": "http://localhost",
       "sslPort": 0
     },
     "iisExpress": {
@@ -29,6 +29,12 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "http://localhost:9981"
+    },
+    "IIS": {
+      "commandName": "IIS",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     }
   }
 }
