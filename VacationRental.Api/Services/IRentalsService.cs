@@ -6,5 +6,6 @@ namespace VacationRental.Api.Services
     {
         Rental GetById(int rentalId);
         int Insert(Rental rental);
+        bool Update(Rental rental);
     }
 }

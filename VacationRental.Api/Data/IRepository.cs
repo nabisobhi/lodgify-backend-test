@@ -8,5 +8,6 @@ namespace VacationRental.Api.Data
         IQueryable<Entity> Table { get; }
         Entity GetById(int id);
         int Insert(Entity entity);
+        bool Update(Entity entity);
     }
 }

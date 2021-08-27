@@ -21,5 +21,10 @@ namespace VacationRental.Api.Services
         {
             return _rentalRepository.Insert(rental);
         }
+
+        public bool Update(Rental rental)
+        {
+            return _rentalRepository.Update(rental);
+        }
     }
 }

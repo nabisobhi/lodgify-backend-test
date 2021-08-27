@@ -12,12 +12,15 @@ namespace VacationRental.Api.Controllers
     public class RentalsController : ControllerBase
     {
         private readonly IRentalsService _rentalsService;
+        private readonly IBookingsService _bookingsService;
         private readonly IMapper _mapper;
 
         public RentalsController(IRentalsService rentalsService,
+            IBookingsService bookingsService,
             IMapper mapper)
         {
             _rentalsService = rentalsService;
+            _bookingsService = bookingsService;
             _mapper = mapper;
         }
 
@@ -41,6 +44,24 @@ namespace VacationRental.Api.Controllers
             var rentalId = _rentalsService.Insert(rental);
 
             return new ResourceIdViewModel { Id = rentalId };
+        }
+
+        [HttpPut]
+        public ResultViewModel Update(RentalUpdateModel model)
+        {
+            var originalRental = _rentalsService.GetById(model.Id);
+
+            if (originalRental is null)
+                throw new ApplicationException("Rental not found");
+
+            if (!_bookingsService.ValidateBookingsWithNewParameters(model.Id, model.Units, model.PreparationTimeInDays))
+                throw new ApplicationException("Cannot set new parameters");
+
+            originalRental.Units = model.Units;
+            originalRental.PreparationTimeInDays = model.PreparationTimeInDays;
+            var isSuccessful = _rentalsService.Update(originalRental);
+
+            return new ResultViewModel { IsSuccessful = isSuccessful };
         }
     }
 }

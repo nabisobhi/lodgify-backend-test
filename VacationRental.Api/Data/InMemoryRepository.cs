@@ -34,5 +34,11 @@ namespace VacationRental.Api.Data
                 return 0;
             return entity.Id;
         }
+
+        public bool Update(Entity entity)
+        {
+            var oldEntity = GetById(entity.Id);
+            return _entities.TryUpdate(entity.Id, entity, oldEntity);
+        }
     }
 }
