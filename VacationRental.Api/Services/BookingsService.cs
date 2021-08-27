@@ -49,9 +49,12 @@ namespace VacationRental.Api.Services
             return bookings.ToList();
         }
 
-        public bool ValidateBookingsWithNewParameters(int rentalId, int units, int preparationTimeInDays)
+        public bool ValidateBookingsWithNewParameters(Rental rental, int units, int preparationTimeInDays)
         {
-            return !_bookingsRepository.Table.Where(booking => booking.RentalId == rentalId)
+            if (units >= rental.Units && preparationTimeInDays <= rental.PreparationTimeInDays)
+                return true;
+
+            return !_bookingsRepository.Table.Where(booking => booking.RentalId == rental.Id)
                 .Select(booking =>
                     Enumerable.Range(0, booking.Nights + preparationTimeInDays).Select(r => booking.Start.AddDays(r)))
                 .SelectMany(bookingDate => bookingDate)

@@ -54,7 +54,7 @@ namespace VacationRental.Api.Controllers
             if (originalRental is null)
                 throw new ApplicationException("Rental not found");
 
-            if (!_bookingsService.ValidateBookingsWithNewParameters(model.Id, model.Units, model.PreparationTimeInDays))
+            if (!_bookingsService.ValidateBookingsWithNewParameters(originalRental, model.Units, model.PreparationTimeInDays))
                 throw new ApplicationException("Cannot set new parameters");
 
             originalRental.Units = model.Units;

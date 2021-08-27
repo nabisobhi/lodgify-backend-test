@@ -10,6 +10,6 @@ namespace VacationRental.Api.Services
         int Insert(Booking Booking);
         bool IsBookingAvailable(Booking newBooking, Rental rental);
         IList<Booking> GetAllRentalBookings(Rental rental, DateTime start, int nights, bool considerPreparationTime = false);
-        bool ValidateBookingsWithNewParameters(int rentalId, int units, int preparationTimeInDays);
+        bool ValidateBookingsWithNewParameters(Rental rental, int units, int preparationTimeInDays);
     }
 }

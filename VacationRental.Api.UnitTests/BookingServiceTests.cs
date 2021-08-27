@@ -43,14 +43,14 @@ namespace VacationRental.Api.UnitTests
                 },
                 new Booking
                 {
-                    Id = 1,
+                    Id = 2,
                     RentalId = _fakeRental.Id,
                     Start = new DateTime(2000, 1, 2),
                     Nights = 1,
                 },
                 new Booking
                 {
-                    Id = 1,
+                    Id = 3,
                     RentalId = _fakeRental.Id,
                     Start = new DateTime(2000, 1, 6),
                     Nights = 2,
@@ -135,7 +135,7 @@ namespace VacationRental.Api.UnitTests
         [Theory, MemberData(nameof(NewParameters))]
         public void GivenNewParameters_WhenValidateBookingsWithNewParameters_ThenCheckResult(int units, int preparationTimeInDays, bool expctedResult)
         {
-            Assert.Equal(expctedResult, _bookingsService.ValidateBookingsWithNewParameters(_fakeRental.Id, units, preparationTimeInDays));
+            Assert.Equal(expctedResult, _bookingsService.ValidateBookingsWithNewParameters(_fakeRental, units, preparationTimeInDays));
         }
     }
 }
