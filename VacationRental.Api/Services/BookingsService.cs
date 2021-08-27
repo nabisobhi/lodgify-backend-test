@@ -41,10 +41,11 @@ namespace VacationRental.Api.Services
             return true;
         }
 
-        public IList<Booking> GetAllRentalBookings(Rental rental, DateTime start, int nights)
+        public IList<Booking> GetAllRentalBookings(Rental rental, DateTime start, int nights, bool considerPreparationTime = false)
         {
             var bookings = _bookingsRepository.Table.Where(booking => booking.RentalId == rental.Id
-                    && booking.Start <= start.AddDays(nights) && EndOfBookig(booking) >= start);
+                    && booking.Start < start.AddDays(nights) 
+                    && (considerPreparationTime ? EndOfBlocking(booking, rental) : EndOfBookig(booking)) > start);
             return bookings.ToList();
         }
 

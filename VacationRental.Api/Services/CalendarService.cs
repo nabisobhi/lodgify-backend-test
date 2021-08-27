@@ -16,7 +16,7 @@ namespace VacationRental.Api.Services
 
         public List<CalendarDate> GetCalendar(Rental rental, DateTime start, int nights)
         {
-            var bookings = _bookingsService.GetAllRentalBookings(rental, start, nights);
+            var bookings = _bookingsService.GetAllRentalBookings(rental, start, nights, true);
 
             var calendarBookingList = new List<CalendarDate>();
 
