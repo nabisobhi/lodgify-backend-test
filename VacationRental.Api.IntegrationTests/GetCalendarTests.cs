@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using VacationRental.Api.Models;
 using Xunit;
 
-namespace VacationRental.Api.Tests
+namespace VacationRental.Api.IntegrationTests
 {
     [Collection("Integration")]
     public class GetCalendarTests
