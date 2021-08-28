@@ -1,5 +1,6 @@
 ﻿using System;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using VacationRental.Api.Domain;
 using VacationRental.Api.Models;
@@ -7,6 +8,7 @@ using VacationRental.Api.Services;
 
 namespace VacationRental.Api.Controllers
 {
+    [Produces("application/json")]
     [Route("api/v1/rentals")]
     [ApiController]
     public class RentalsController : ControllerBase
@@ -24,44 +26,65 @@ namespace VacationRental.Api.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Get a rental by Id.
+        /// </summary>
+        /// <response code="200">Returns the rental</response>
+        /// <response code="404">If the rental is not found</response>
         [HttpGet]
         [Route("{rentalId:int}")]
-        public RentalViewModel Get(int rentalId)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<RentalViewModel> Get(int rentalId)
         {
             var rental = _rentalsService.GetById(rentalId);
 
             if (rental is null)
-                throw new ApplicationException("Rental not found");
+                return NotFound(nameof(Rental));
 
-            return _mapper.Map<RentalViewModel>(rental);
+            return Ok(_mapper.Map<RentalViewModel>(rental));
         }
 
+        /// <summary>
+        /// Creates a rental.
+        /// </summary>
+        /// <response code="201">Returns the newly created rentalId</response>
         [HttpPost]
-        public ResourceIdViewModel Post(RentalBindingModel model)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public ActionResult<ResourceIdViewModel> Post(RentalBindingModel model)
         {
             var rental = _mapper.Map<Rental>(model);
 
             var rentalId = _rentalsService.Insert(rental);
 
-            return new ResourceIdViewModel { Id = rentalId };
+            return CreatedAtAction(nameof(Get), new { rentalId = rentalId }, new ResourceIdViewModel { Id = rentalId });
         }
 
+        /// <summary>
+        /// Updates a rental.
+        /// </summary>
+        /// <response code="200">Returns a true value</response>
+        /// <response code="400">If a conflict in the previous bookings occured.</response>
+        /// <response code="404">If the rental is not found</response>
         [HttpPut]
-        public ResultViewModel Update(RentalUpdateModel model)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<ResultViewModel> Update(RentalUpdateModel model)
         {
             var originalRental = _rentalsService.GetById(model.Id);
 
             if (originalRental is null)
-                throw new ApplicationException("Rental not found");
+                return NotFound(nameof(Rental));
 
             if (!_bookingsService.ValidateBookingsWithNewParameters(originalRental, model.Units, model.PreparationTimeInDays))
-                throw new ApplicationException("Cannot set new parameters");
+                return BadRequest("Conflict in the previous bookings occured.");
 
             originalRental.Units = model.Units;
             originalRental.PreparationTimeInDays = model.PreparationTimeInDays;
             var isSuccessful = _rentalsService.Update(originalRental);
 
-            return new ResultViewModel { IsSuccessful = isSuccessful };
+            return Ok(new ResultViewModel { IsSuccessful = isSuccessful });
         }
     }
 }

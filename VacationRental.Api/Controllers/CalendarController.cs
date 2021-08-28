@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using VacationRental.Api.Domain;
 using VacationRental.Api.Models;
@@ -25,15 +26,24 @@ namespace VacationRental.Api.Controllers
             _rentalsService = rentalsService;
         }
 
+        /// <summary>
+        /// Get a calendar.
+        /// </summary>
+        /// <response code="200">Returns a calendar</response>
+        /// <response code="400">If nights value is not positive</response>
+        /// <response code="404">If the rental is not found</response>
         [HttpGet]
-        public CalendarViewModel Get(int rentalId, DateTime start, int nights)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<CalendarViewModel> Get(int rentalId, DateTime start, int nights)
         {
             if (nights < 0)
-                throw new ApplicationException("Nights must be positive");
+                return BadRequest("Nights must be positive");
 
             var rental = _rentalsService.GetById(rentalId);
             if (rental is null)
-                throw new ApplicationException("Rental not found");
+                return BadRequest("Rental not found");
 
             var calendarBookingList = _calendarService.GetCalendar(rental, start, nights);
 
@@ -67,7 +77,7 @@ namespace VacationRental.Api.Controllers
                 });
             }
 
-            return result;
+            return Ok(result);
         }
     }
 }
