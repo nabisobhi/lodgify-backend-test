@@ -27,18 +27,12 @@ namespace VacationRental.Api.Services
 
         public bool IsBookingAvailable(Booking newBooking, Rental rental)
         {
-            for (var i = 0; i < newBooking.Nights; i++)
-            {
-                var count = _bookingsRepository.Table.Count(booking => booking.RentalId == rental.Id
-                        && (booking.Start <= newBooking.Start.Date && EndOfBlocking(booking, rental) > newBooking.Start.Date)
-                        || (booking.Start < EndOfBlocking(newBooking, rental) && EndOfBlocking(booking, rental) >= EndOfBlocking(newBooking, rental))
-                        || (booking.Start > newBooking.Start && EndOfBlocking(booking, rental) < EndOfBlocking(newBooking, rental)));
+            var fullUnits = _bookingsRepository.Table.Count(booking => booking.RentalId == rental.Id
+                    && (booking.Start <= newBooking.Start.Date && EndOfBlocking(booking, rental) > newBooking.Start.Date)
+                    || (booking.Start < EndOfBlocking(newBooking, rental) && EndOfBlocking(booking, rental) >= EndOfBlocking(newBooking, rental))
+                    || (booking.Start > newBooking.Start && EndOfBlocking(booking, rental) < EndOfBlocking(newBooking, rental)));
 
-                if (count >= rental.Units)
-                    return false;
-            }
-
-            return true;
+            return fullUnits < rental.Units;
         }
 
         public IList<Booking> GetAllRentalBookings(Rental rental, DateTime start, int nights, bool considerPreparationTime = false)
