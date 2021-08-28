@@ -15,14 +15,14 @@ namespace VacationRental.Api.Services
             _bookingsRepository = bookingsRepository;
         }
 
-        public Booking GetById(int BookingId)
+        public Booking GetById(int bookingId)
         {
-            return _bookingsRepository.GetById(BookingId);
+            return _bookingsRepository.GetById(bookingId);
         }
 
-        public int Insert(Booking Booking)
+        public int Insert(Booking booking)
         {
-            return _bookingsRepository.Insert(Booking);
+            return _bookingsRepository.Insert(booking);
         }
 
         public bool IsBookingAvailable(Booking newBooking, Rental rental)
