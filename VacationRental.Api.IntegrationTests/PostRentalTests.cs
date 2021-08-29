@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using VacationRental.Api.Models;
 using Xunit;
 
-namespace VacationRental.Api.Tests
+namespace VacationRental.Api.IntegrationTests
 {
     [Collection("Integration")]
     public class PostRentalTests
@@ -22,7 +22,8 @@ namespace VacationRental.Api.Tests
         {
             var request = new RentalBindingModel
             {
-                Units = 25
+                Units = 25,
+                PreparationTimeInDays = 11,
             };
 
             ResourceIdViewModel postResult;
@@ -38,6 +39,7 @@ namespace VacationRental.Api.Tests
 
                 var getResult = await getResponse.Content.ReadAsAsync<RentalViewModel>();
                 Assert.Equal(request.Units, getResult.Units);
+                Assert.Equal(request.PreparationTimeInDays, getResult.PreparationTimeInDays);
             }
         }
     }
