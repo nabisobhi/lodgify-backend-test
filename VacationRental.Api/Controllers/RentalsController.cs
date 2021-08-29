@@ -49,10 +49,18 @@ namespace VacationRental.Api.Controllers
         /// Creates a rental.
         /// </summary>
         /// <response code="201">Returns the newly created rentalId</response>
+        /// <response code="400">If units value is not positive, or PreparationTimeInDays is negative</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<ResourceIdViewModel> Post(RentalBindingModel model)
         {
+            if (model.Units <= 0)
+                return BadRequest("Units must be positive");
+
+            if (model.PreparationTimeInDays < 0)
+                return BadRequest("PreparationTimeInDays must not be negative");
+
             var rental = _mapper.Map<Rental>(model);
 
             var rentalId = _rentalsService.Insert(rental);
@@ -64,7 +72,7 @@ namespace VacationRental.Api.Controllers
         /// Updates a rental.
         /// </summary>
         /// <response code="200">Returns a true value</response>
-        /// <response code="400">If a conflict in the previous bookings occured.</response>
+        /// <response code="400">If a conflict in the previous bookings occured, or units value is not positive, or PreparationTimeInDays is negative.</response>
         /// <response code="404">If the rental is not found</response>
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -72,6 +80,12 @@ namespace VacationRental.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<ResultViewModel> Update(RentalUpdateModel model)
         {
+            if (model.Units <= 0)
+                return BadRequest("Units must be positive");
+
+            if (model.PreparationTimeInDays < 0)
+                return BadRequest("PreparationTimeInDays must not be negative");
+
             var originalRental = _rentalsService.GetById(model.Id);
 
             if (originalRental is null)
