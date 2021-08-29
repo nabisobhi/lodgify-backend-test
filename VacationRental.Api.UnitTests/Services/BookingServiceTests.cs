@@ -9,7 +9,7 @@ using VacationRental.Api.Services;
 using Xunit;
 using Xunit.Extensions;
 
-namespace VacationRental.Api.UnitTests
+namespace VacationRental.Api.UnitTests.Services
 {
     [Collection("Unit")]
     public class BookingServiceTests

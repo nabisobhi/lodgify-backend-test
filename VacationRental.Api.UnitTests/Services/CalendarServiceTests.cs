@@ -9,7 +9,7 @@ using VacationRental.Api.Services;
 using Xunit;
 using Xunit.Extensions;
 
-namespace VacationRental.Api.UnitTests
+namespace VacationRental.Api.UnitTests.Services
 {
     [Collection("Unit")]
     public class CalendarServiceTests
@@ -76,12 +76,12 @@ namespace VacationRental.Api.UnitTests
             Assert.Equal(10, calendarDates.Count);
             Assert.Equal(4, calendarDates.Count(cd => cd.Type == CalendarDateType.Booking));
             Assert.Equal(6, calendarDates.Count(cd => cd.Type == CalendarDateType.PreparationTime));
-            
+
             Assert.Contains(calendarDates, cd => cd.Type == CalendarDateType.Booking && cd.BookingId == _booking1.Id && cd.Date == _booking1.Start && cd.Unit == 2);
             Assert.Contains(calendarDates, cd => cd.Type == CalendarDateType.Booking && cd.BookingId == _booking2.Id && cd.Date == _booking2.Start && cd.Unit == 1);
             Assert.Contains(calendarDates, cd => cd.Type == CalendarDateType.Booking && cd.BookingId == _booking3.Id && cd.Date == _booking3.Start && cd.Unit == 1);
             Assert.Contains(calendarDates, cd => cd.Type == CalendarDateType.Booking && cd.BookingId == _booking3.Id && cd.Date == _booking3.Start.AddDays(1) && cd.Unit == 1);
-            
+
             Assert.Contains(calendarDates, cd => cd.Type == CalendarDateType.PreparationTime && cd.Date == _booking1.Start.AddDays(1) && cd.Unit == 2);
             Assert.Contains(calendarDates, cd => cd.Type == CalendarDateType.PreparationTime && cd.Date == _booking1.Start.AddDays(2) && cd.Unit == 2);
             Assert.Contains(calendarDates, cd => cd.Type == CalendarDateType.PreparationTime && cd.Date == _booking2.Start.AddDays(1) && cd.Unit == 1);
