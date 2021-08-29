@@ -55,12 +55,6 @@ namespace VacationRental.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public ActionResult<ResourceIdViewModel> Post(RentalBindingModel model)
         {
-            if (model.Units <= 0)
-                return BadRequest("Units must be positive");
-
-            if (model.PreparationTimeInDays < 0)
-                return BadRequest("PreparationTimeInDays must not be negative");
-
             var rental = _mapper.Map<Rental>(model);
 
             var rentalId = _rentalsService.Insert(rental);
@@ -80,12 +74,6 @@ namespace VacationRental.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<ResultViewModel> Update(RentalUpdateModel model)
         {
-            if (model.Units <= 0)
-                return BadRequest("Units must be positive");
-
-            if (model.PreparationTimeInDays < 0)
-                return BadRequest("PreparationTimeInDays must not be negative");
-
             var originalRental = _rentalsService.GetById(model.Id);
 
             if (originalRental is null)

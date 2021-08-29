@@ -57,9 +57,6 @@ namespace VacationRental.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<ResourceIdViewModel> Post(BookingBindingModel model)
         {
-            if (model.Nights <= 0)
-                return BadRequest("Nights must be positive");
-
             var rental = _rentalsService.GetById(model.RentalId);
             if (rental is null)
                 return NotFound(nameof(Rental));

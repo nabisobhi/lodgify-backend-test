@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using AutoMapper;
+using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,7 @@ using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
 using VacationRental.Api.Data;
 using VacationRental.Api.Domain;
+using VacationRental.Api.Filters;
 using VacationRental.Api.Models;
 using VacationRental.Api.Services;
 
@@ -39,7 +41,14 @@ namespace VacationRental.Api
             IMapper mapper = mapperConfig.CreateMapper();
             services.AddSingleton(mapper);
 
-            services.AddControllers();
+            services.AddControllers(configure =>
+            {
+                configure.Filters.Add(new ValidatorFilter());
+            }).AddFluentValidation(s =>
+            {
+                s.RegisterValidatorsFromAssemblyContaining<Startup>();
+                s.DisableDataAnnotationsValidation = true;
+            });
 
             services.AddSwaggerGen(opts => {
                 opts.SwaggerDoc("v1", new OpenApiInfo
@@ -57,7 +66,6 @@ namespace VacationRental.Api
             services.AddSingleton<IRentalsService, RentalsService>();
             services.AddSingleton<IBookingsService, BookingsService>();
             services.AddSingleton<ICalendarService, CalendarService>();
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

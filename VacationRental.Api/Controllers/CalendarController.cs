@@ -36,26 +36,23 @@ namespace VacationRental.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<CalendarViewModel> Get(int rentalId, DateTime start, int nights)
+        public ActionResult<CalendarViewModel> Get([FromQuery]GetCalendarRequestModel requestModel)
         {
-            if (nights < 0)
-                return BadRequest("Nights must be positive");
-
-            var rental = _rentalsService.GetById(rentalId);
+            var rental = _rentalsService.GetById(requestModel.RentalId);
             if (rental is null)
                 return BadRequest("Rental not found");
 
-            var calendarBookingList = _calendarService.GetCalendar(rental, start, nights);
+            var calendarBookingList = _calendarService.GetCalendar(rental, requestModel.Start, requestModel.Nights);
 
             var result = new CalendarViewModel
             {
-                RentalId = rentalId,
+                RentalId = requestModel.RentalId,
                 Dates = new List<CalendarDateViewModel>(),
             };
 
-            for (var i = 0; i < nights; i++)
+            for (var i = 0; i < requestModel.Nights; i++)
             {
-                var dateTime = start.Date.AddDays(i);
+                var dateTime = requestModel.Start.Date.AddDays(i);
                 result.Dates.Add(new CalendarDateViewModel
                 {
                     Date = dateTime,
