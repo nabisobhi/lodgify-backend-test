@@ -1,43 +1,92 @@
 ﻿using System;
-using System.Collections.Generic;
+using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using VacationRental.Api.Domain;
 using VacationRental.Api.Models;
+using VacationRental.Api.Services;
 
 namespace VacationRental.Api.Controllers
 {
+    [Produces("application/json")]
     [Route("api/v1/rentals")]
     [ApiController]
     public class RentalsController : ControllerBase
     {
-        private readonly IDictionary<int, RentalViewModel> _rentals;
+        private readonly IRentalsService _rentalsService;
+        private readonly IBookingsService _bookingsService;
+        private readonly IMapper _mapper;
 
-        public RentalsController(IDictionary<int, RentalViewModel> rentals)
+        public RentalsController(IRentalsService rentalsService,
+            IBookingsService bookingsService,
+            IMapper mapper)
         {
-            _rentals = rentals;
+            _rentalsService = rentalsService;
+            _bookingsService = bookingsService;
+            _mapper = mapper;
         }
 
+        /// <summary>
+        /// Get a rental by Id.
+        /// </summary>
+        /// <response code="200">Returns the rental</response>
+        /// <response code="404">If the rental is not found</response>
         [HttpGet]
         [Route("{rentalId:int}")]
-        public RentalViewModel Get(int rentalId)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<RentalViewModel> Get(int rentalId)
         {
-            if (!_rentals.ContainsKey(rentalId))
-                throw new ApplicationException("Rental not found");
+            var rental = _rentalsService.GetById(rentalId);
 
-            return _rentals[rentalId];
+            if (rental is null)
+                return NotFound(nameof(Rental));
+
+            return Ok(_mapper.Map<RentalViewModel>(rental));
         }
 
+        /// <summary>
+        /// Creates a rental.
+        /// </summary>
+        /// <response code="201">Returns the newly created rentalId</response>
+        /// <response code="400">If units value is not positive, or PreparationTimeInDays is negative</response>
         [HttpPost]
-        public ResourceIdViewModel Post(RentalBindingModel model)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<ResourceIdViewModel> Post(RentalBindingModel model)
         {
-            var key = new ResourceIdViewModel { Id = _rentals.Keys.Count + 1 };
+            var rental = _mapper.Map<Rental>(model);
 
-            _rentals.Add(key.Id, new RentalViewModel
-            {
-                Id = key.Id,
-                Units = model.Units
-            });
+            var rentalId = _rentalsService.Insert(rental);
 
-            return key;
+            return CreatedAtAction(nameof(Get), new { rentalId = rentalId }, new ResourceIdViewModel { Id = rentalId });
+        }
+
+        /// <summary>
+        /// Updates a rental.
+        /// </summary>
+        /// <response code="200">Returns a true value</response>
+        /// <response code="400">If a conflict in the previous bookings occured, or units value is not positive, or PreparationTimeInDays is negative.</response>
+        /// <response code="404">If the rental is not found</response>
+        [HttpPut]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<ResultViewModel> Update(RentalUpdateModel model)
+        {
+            var originalRental = _rentalsService.GetById(model.Id);
+
+            if (originalRental is null)
+                return NotFound(nameof(Rental));
+
+            if (!_bookingsService.ValidateBookingsWithNewParameters(originalRental, model.Units, model.PreparationTimeInDays))
+                return BadRequest("Conflict in the previous bookings occured.");
+
+            originalRental.Units = model.Units;
+            originalRental.PreparationTimeInDays = model.PreparationTimeInDays;
+            var isSuccessful = _rentalsService.Update(originalRental);
+
+            return Ok(new ResultViewModel { IsSuccessful = isSuccessful });
         }
     }
 }

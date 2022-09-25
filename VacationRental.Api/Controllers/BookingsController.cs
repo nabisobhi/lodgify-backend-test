@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using VacationRental.Api.Domain;
 using VacationRental.Api.Models;
+using VacationRental.Api.Services;
 
 namespace VacationRental.Api.Controllers
 {
@@ -9,64 +13,62 @@ namespace VacationRental.Api.Controllers
     [ApiController]
     public class BookingsController : ControllerBase
     {
-        private readonly IDictionary<int, RentalViewModel> _rentals;
-        private readonly IDictionary<int, BookingViewModel> _bookings;
+        private readonly IBookingsService _bookingsService;
+        private readonly IRentalsService _rentalsService;
+        private readonly IMapper _mapper;
 
-        public BookingsController(
-            IDictionary<int, RentalViewModel> rentals,
-            IDictionary<int, BookingViewModel> bookings)
+        public BookingsController(IBookingsService bookingsService,
+            IRentalsService rentalsService,
+            IMapper mapper)
         {
-            _rentals = rentals;
-            _bookings = bookings;
+            _bookingsService = bookingsService;
+            _rentalsService = rentalsService;
+            _mapper = mapper;
         }
 
+        /// <summary>
+        /// Get a booking by Id.
+        /// </summary>
+        /// <response code="200">Returns the booking</response>
+        /// <response code="404">If the booking is not found</response>
         [HttpGet]
         [Route("{bookingId:int}")]
-        public BookingViewModel Get(int bookingId)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<BookingViewModel> Get(int bookingId)
         {
-            if (!_bookings.ContainsKey(bookingId))
-                throw new ApplicationException("Booking not found");
+            var booking = _bookingsService.GetById(bookingId);
 
-            return _bookings[bookingId];
+            if (booking is null)
+                return NotFound(nameof(Booking));
+
+            return Ok(_mapper.Map<BookingViewModel>(booking));
         }
 
+        /// <summary>
+        /// Creates a booking.
+        /// </summary>
+        /// <response code="201">Returns the newly created bookingId</response>
+        /// <response code="400">If nights value is not positive, or the booking is not available</response>
+        /// <response code="404">If the rental is not found</response>
         [HttpPost]
-        public ResourceIdViewModel Post(BookingBindingModel model)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<ResourceIdViewModel> Post(BookingBindingModel model)
         {
-            if (model.Nights <= 0)
-                throw new ApplicationException("Nigts must be positive");
-            if (!_rentals.ContainsKey(model.RentalId))
-                throw new ApplicationException("Rental not found");
+            var rental = _rentalsService.GetById(model.RentalId);
+            if (rental is null)
+                return NotFound(nameof(Rental));
 
-            for (var i = 0; i < model.Nights; i++)
-            {
-                var count = 0;
-                foreach (var booking in _bookings.Values)
-                {
-                    if (booking.RentalId == model.RentalId
-                        && (booking.Start <= model.Start.Date && booking.Start.AddDays(booking.Nights) > model.Start.Date)
-                        || (booking.Start < model.Start.AddDays(model.Nights) && booking.Start.AddDays(booking.Nights) >= model.Start.AddDays(model.Nights))
-                        || (booking.Start > model.Start && booking.Start.AddDays(booking.Nights) < model.Start.AddDays(model.Nights)))
-                    {
-                        count++;
-                    }
-                }
-                if (count >= _rentals[model.RentalId].Units)
-                    throw new ApplicationException("Not available");
-            }
+            var newBooking = _mapper.Map<Booking>(model);
 
+            if (!_bookingsService.IsBookingAvailable(newBooking, rental))
+                return BadRequest("Booking is not available.");
 
-            var key = new ResourceIdViewModel { Id = _bookings.Keys.Count + 1 };
+            var newBookingId = _bookingsService.Insert(newBooking);
 
-            _bookings.Add(key.Id, new BookingViewModel
-            {
-                Id = key.Id,
-                Nights = model.Nights,
-                RentalId = model.RentalId,
-                Start = model.Start.Date
-            });
-
-            return key;
+            return CreatedAtAction(nameof(Get), new { bookingId = newBookingId }, new ResourceIdViewModel { Id = newBookingId });
         }
     }
 }
